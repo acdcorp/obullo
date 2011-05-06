@@ -233,7 +233,7 @@ Class OB_URI
             $matched = TRUE;
         }
 
-        return str_replace('.'.$this->extension, '', $segment);
+        return preg_replace('/\.'.$this->extension.'$/', '', $segment);
     }
 
     // --------------------------------------------------------------------
