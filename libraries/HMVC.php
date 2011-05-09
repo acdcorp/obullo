@@ -294,7 +294,7 @@ Class OB_HMVC
     *
     * @return   string
     */
-    public function exec()
+    public function exec($extension= 'php')
     {
         if($this->no_loop)
         {
@@ -335,6 +335,7 @@ Class OB_HMVC
         // also we need it for cache functionality.
         $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
+        $URI->extension  = $extension;
 
         ob_start();
 
