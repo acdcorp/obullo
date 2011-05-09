@@ -335,7 +335,8 @@ Class OB_HMVC
         // also we need it for cache functionality.
         $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
-        $URI->extension  = $extension;
+        // ATTENTION MIGHT NEED TO ADD
+        //$URI->extension= $extension;
 
         ob_start();
 
