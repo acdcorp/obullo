@@ -110,6 +110,7 @@ if( ! function_exists('sess_get') )
 {
   function sess_get($name, $default = null)
   {
+    if(is_array($name)) return;
     fuel_read();
     $_ob = base_register('Storage');
 
@@ -709,7 +710,7 @@ if( ! function_exists('fuel_unserialize') )
 {
   function fuel_unserialize($data)
   {
-    $data = @unserialize($data);
+    if(is_string($data)) $data = @unserialize($data);
 
     if (is_array($data))
     {
