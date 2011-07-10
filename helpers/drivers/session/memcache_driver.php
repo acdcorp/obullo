@@ -185,10 +185,22 @@ if( ! function_exists('sess_get') )
 */
 if( ! function_exists('sess_set') )
 {
-  function sess_set($name, $value)
+  function sess_set($name, $value= '')
   {
     $_ob = base_register('Storage');
     $_ob->session->data[$name] = $value;
+    /*if(is_array($name))
+    {
+      foreach ($newdata as $key => $val)
+      {
+        $_ob->session->data[$name] = $value;
+      }
+    }
+    else
+    {
+      $_ob->session->data[$name] = $value;
+    }*/
+
     fuel_write();
   }
 }
@@ -454,10 +466,10 @@ if( ! function_exists('fuel_set_cookie') )
         }
 
         // Set the cookie
-        cookie_set(
+        setcookie(
           $_ob->session->sess_cookie_name,
           $payload,
-          $_ob->session->sess_expiration,
+          time() + $_ob->session->sess_expiration,
           $_ob->session->cookie_path,
           $_ob->session->cookie_domain,
           0
@@ -478,7 +490,7 @@ if( ! function_exists('fuel_get_cookie') )
         $_ob = base_register('Storage');
 
         // Fetch the cookie
-        $cookie = cookie_get($_ob->session->sess_cookie_name);
+        $cookie = i_cookie($_ob->session->sess_cookie_name);
 
         // No cookie?  Goodbye cruel world!...
         if ($cookie === FALSE)
