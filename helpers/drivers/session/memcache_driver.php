@@ -349,7 +349,6 @@ if( ! function_exists('fuel_write') )
         // point the old session file to the new one, we don't want to lose the session
         $payload = fuel_serialize(array('rotated_session_id' => $_ob->session->keys['session_id']));
         fuel_write_memcached($_ob->session->keys['previous_id'], $payload);
-        fuel_set_cookie();
       }
 
     }
@@ -378,6 +377,7 @@ if( ! function_exists('fuel_rotate') )
       $_ob->session->keys['session_id']   = fuel_new_session_id();
       $_ob->session->keys['created']      = time();
       $_ob->session->keys['updated']      = $_ob->session->keys['created'];
+      fuel_set_cookie();
     }
 
   }
