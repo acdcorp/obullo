@@ -16,7 +16,6 @@ if( ! function_exists('_sess_start') )
     function _sess_start($params = array())
     {
         log_me('debug', "Session Native Driver Initialized");
-
         $_ob = base_register('Storage');
 
         foreach (array(
@@ -46,59 +45,34 @@ if( ! function_exists('_sess_start') )
         $memcache_ips = json_decode($_ob->session->sess_memcache_ips);
         foreach($memcache_ips as $ip)
         $_ob->session->memcache->addServer($ip,11211);
-
-        // Lets initiate all the defaults
-        $_ob->session->keys= array();
-        $_ob->session->keys['session_id']  = fuel_new_session_id();
-        $_ob->session->keys['previous_id'] = $_ob->session->keys['session_id'];  // prevents errors if previous_id has a unique index
-        $_ob->session->keys['ip_address']  = fuel_real_ip();
-        $_ob->session->keys['user_agent']  = fuel_user_agent();
-        $_ob->session->keys['created']     = time();
-        $_ob->session->keys['updated']     = $_ob->session->keys['created'];
-        $_ob->session->data=array();
-        $_ob->session->flash=array();
-
-        fuel_write_memcached($_ob->session->keys['session_id'], serialize(array()));
-        fuel_set_cookie();
-
-        /*$_ob->session->now = _get_time();
-
-        session_name($_ob->session->cookie_prefix . $_ob->session->sess_cookie_name);
-
-        session_start();
-
-        if (is_numeric($_ob->session->sess_expiration))
-        {
-            if ($_ob->session->sess_expiration > 0)
-            {
-                $_ob->session->sess_id_ttl = $_ob->session->sess_expiration;
-            }
-            else
-            {
-                $_ob->session->sess_id_ttl = (60 * 60 * 24 * 365 * 2);
-            }
-        }
-
-        // check if session id needs regeneration
-        if ( _session_id_expired() )
-        {
-            // regenerate session id (session data stays the
-            // same, but old session storage is destroyed)
-            _session_regenerate_id();
-        }
-
-        // delete old flashdata (from last request)
-        _flashdata_sweep();
-
-        // mark all new flashdata as old (data will be deleted before next request)
-        _flashdata_mark();*/
+        fuel_read();
 
         log_me('debug', "Session routines successfully run");
 
         return TRUE;
     }
 }
+if( ! function_exists('_sess_create') )
+{
+  function _sess_create()
+  {
+    $_ob = base_register('Storage');
 
+    // Lets initiate all the defaults
+    $_ob->session->keys= array();
+    $_ob->session->keys['session_id']  = fuel_new_session_id();
+    $_ob->session->keys['previous_id'] = $_ob->session->keys['session_id'];  // prevents errors if previous_id has a unique index
+    $_ob->session->keys['ip_address']  = fuel_real_ip();
+    $_ob->session->keys['user_agent']  = fuel_user_agent();
+    $_ob->session->keys['created']     = time();
+    $_ob->session->keys['updated']     = $_ob->session->keys['created'];
+    $_ob->session->data=array();
+    $_ob->session->flash=array();
+
+    fuel_write_memcached($_ob->session->keys['session_id'], serialize(array()));
+    fuel_set_cookie();
+  }
+}
 /**
 * Fetch a specific item from the session array
 *
@@ -286,7 +260,7 @@ if( ! function_exists('fuel_read') )
     // if no session cookie was present, create it
     if ($cookie === false or $force)
     {
-      _sess_start();
+      _sess_create();
     }
 
     // read the session file
@@ -375,9 +349,9 @@ if( ! function_exists('fuel_write') )
         // point the old session file to the new one, we don't want to lose the session
         $payload = fuel_serialize(array('rotated_session_id' => $_ob->session->keys['session_id']));
         fuel_write_memcached($_ob->session->keys['previous_id'], $payload);
+        fuel_set_cookie();
       }
 
-      fuel_set_cookie();
     }
   }
 }
@@ -547,6 +521,7 @@ if( ! function_exists('fuel_get_cookie') )
         // session is valid, retrieve the session keys
         if (isset($cookie[0])) $_ob->session->keys = $cookie[0];
 
+        return true;
         // and return the cookie payload
         array_shift($cookie);
         return $cookie;
