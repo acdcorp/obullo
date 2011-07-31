@@ -85,9 +85,8 @@ Class OB_HMVC
     * @param     int $cache_time
     * @return    void
     */
-    public function hmvc_request($hmvc_uri = '', $cache_time = 0, $extension= 'php')
+    public function hmvc_request($hmvc_uri = '', $cache_time = 0)
     {
-        $hmvc_uri= preg_replace('/\.'.$extension.'$/', '', $hmvc_uri);
         $this->_set_conn_string($hmvc_uri);
 
         // Don't clone this(), we just do backup.
@@ -106,7 +105,6 @@ Class OB_HMVC
             $URI->clear();           // Reset uri objects we will reuse it for hmvc
             $Router->clear();        // Reset router objects we will reuse it for hmvc.
 
-            $URI->extension= $extension;
             $Router->hmvc = TRUE;    // We need to know Router class whether to use HMVC.
 
             $this->cache_time = $cache_time;
@@ -214,6 +212,13 @@ Class OB_HMVC
                 }
             }
         }
+
+        // Original request variables
+        $GLOBALS['_GET_BACKUP']    = $_GET;
+        $GLOBALS['_POST_BACKUP']   = $_POST;
+        $GLOBALS['_SERVER_BACKUP'] = $_SERVER;
+        $GLOBALS['_SERVER_BACKUP'] = $_REQUEST;
+
         $this->_GET_BACKUP     = $_GET;         // Overload to $_REQUEST variables ..
         $this->_POST_BACKUP    = $_POST;
         $this->_SERVER_BACKUP  = $_SERVER;
@@ -337,8 +342,6 @@ Class OB_HMVC
         // also we need it for cache functionality.
         $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
-        // ATTENTION MIGHT NEED TO ADD
-
 
         ob_start();
 

@@ -336,19 +336,14 @@ Class OB_Loader {
             return;
         }
 
-        if($return_object)
-        {
-            profiler_set('databases', $db_name, $db_var);  // Store db variables ..
-            return OB_DBFactory::Connect($db_name, $db_var, $use_active_record); // Return to database object ..
-        }
-
         if(!isset($GLOBALS['__DATABASE__'.$db_name]))
         {
           $GLOBALS['__DATABASE__'.$db_name] = OB_DBFactory::Connect($db_name, $db_var, $use_active_record);   // Connect to Database
           profiler_set('databases', $db_name, $db_var);  // Store db variables
-          self::_assign_db_objects($db_var);
+          if(!$return_object) self::_assign_db_objects($db_var);
         }
 
+        if($return_object) return $GLOBALS['__DATABASE__'.$db_name];
         $OB->{$db_var}= $GLOBALS['__DATABASE__'.$db_name];
     }
 
@@ -730,7 +725,15 @@ Class OB_Loader {
 
         foreach ($models as $model_name)
         {
-            $OB->$model_name->$db_var = &$OB->$db_var;
+          if( ! isset($OB->$model_name) ) return;
+          if(is_object($OB->$model_name->$db_var))
+          {
+            return;
+          }
+          if(is_object($OB->$db_var))
+          {
+              $OB->$model_name->$db_var = $OB->$db_var;
+          }
         }
 
     }

@@ -5,16 +5,15 @@ defined('BASE') or exit('Access Denied!');
  * Obullo Framework (c) 2009.
  *
  * PHP5 MVC Based Minimalist Software.
- * 
- * @package         obullo      
+ *
+ * @package         obullo
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2010.
  * @since           Version 1.0
  * @filesource
  * @license
- */ 
- 
-Class InputException extends CommonException {}  
+ */
+
+Class InputException extends CommonException {}
 
 // ------------------------------------------------------------------------
 
@@ -32,7 +31,7 @@ if( ! isset($_ob->input))   // Helper Constructor
 
     $_ob->input->use_xss_clean   = ($_config->item('global_xss_filtering') === TRUE) ? TRUE : FALSE;
     $_ob->input->allow_get_array = ($_config->item('enable_query_strings') === TRUE) ? TRUE : FALSE;
-    
+
     log_me('debug', "Input Helper Initialized");
 }
 
@@ -41,23 +40,23 @@ if( ! isset($_ob->input))   // Helper Constructor
 * This function does the following:
 * Unsets $_GET data (if query strings are not enabled)
 * Unsets all globals if register_globals is enabled.
-* 
+*
 * Standardizes newline characters to \n
 *
 * @access    private
 * @return    void
 */
-if( ! function_exists('_sanitize_globals') ) 
+if( ! function_exists('_sanitize_globals') )
 {
     function _sanitize_globals()
     {
         $_ob = base_register('Storage');
-        
+
         // Would kind of be "wrong" to unset any of these GLOBALS
-        $protected = array('_SERVER', '_GET', '_POST', '_FILES', '_REQUEST', '_SESSION', '_ENV', '_controller', 
+        $protected = array('_SERVER', '_GET', '_POST', '_FILES', '_REQUEST', '_SESSION', '_ENV', '_controller',
         'GLOBALS', 'HTTP_RAW_POST_DATA');
-       
-        // Unset globals for security. 
+
+        // Unset globals for security.
         // This is effectively the same as register_globals = off
         foreach (array($_GET, $_POST, $_COOKIE, $_SERVER, $_FILES, $_ENV, (isset($_SESSION) && is_array($_SESSION)) ? $_SESSION : array()) as $global)
         {
@@ -131,12 +130,12 @@ if( ! function_exists('_sanitize_globals') )
 * @param    string
 * @return   string
 */
-if( ! function_exists('_clean_input_data') ) 
+if( ! function_exists('_clean_input_data') )
 {
     function _clean_input_data($str)
     {
         $_ob = base_register('Storage');
-        
+
         if (is_array($str))
         {
             $new_array = array();
@@ -157,7 +156,7 @@ if( ! function_exists('_clean_input_data') )
         if ($_ob->input->use_xss_clean === TRUE)
         {
             loader::helper('ob/security');
-            
+
             $str = xss_clean($str);
         }
 
@@ -183,7 +182,7 @@ if( ! function_exists('_clean_input_data') )
 * @param    string
 * @return   string
 */
-if( ! function_exists('_clean_input_keys') ) 
+if( ! function_exists('_clean_input_keys') )
 {
     function _clean_input_keys($str)
     {
@@ -208,7 +207,7 @@ if( ! function_exists('_clean_input_keys') )
 * @param    bool
 * @return   string
 */
-if( ! function_exists('_fetch_from_array') ) 
+if( ! function_exists('_fetch_from_array') )
 {
     function _fetch_from_array(&$array, $index = '', $xss_clean = FALSE)
     {
@@ -220,7 +219,7 @@ if( ! function_exists('_fetch_from_array') )
         if ($xss_clean === TRUE)
         {
             loader::helper('ob/security');
-            
+
             return xss_clean($array[$index]);
         }
 
@@ -235,13 +234,16 @@ if( ! function_exists('_fetch_from_array') )
 * @access   public
 * @param    string
 * @param    bool
+* @param    bool    Use global get values instead of HMVC values.
 * @return   string
 */
-if( ! function_exists('i_get') ) 
+if( ! function_exists('i_get') )
 {
-    function i_get($index = '', $xss_clean = FALSE)
+    function i_get($index = '', $xss_clean = FALSE, $use_global_var = FALSE)
     {
-        return _fetch_from_array($_GET, $index, $xss_clean);
+        $GET = ($use_global_var) ? $GLOBALS['_GET_BACKUP']: $_GET; // _GET_BACKUP = Hmvc local get values
+
+        return _fetch_from_array($GET, $index, $xss_clean);
     }
 }
 // --------------------------------------------------------------------
@@ -252,15 +254,19 @@ if( ! function_exists('i_get') )
 * @access   public
 * @param    string
 * @param    bool
+* @param    bool    Use global post values instead of HMVC values.
 * @return   string
 */
-if( ! function_exists('i_post') ) 
+if( ! function_exists('i_post') )
 {
-    function i_post($index = '', $xss_clean = FALSE)
+    function i_post($index = '', $xss_clean = FALSE, $use_global_var = FALSE)
     {
-        return _fetch_from_array($_POST, $index, $xss_clean);
+        $POST = ($use_global_var) ? $GLOBALS['_POST_BACKUP']: $_POST; // _POST_BACKUP = Hmvc local post values
+
+        return _fetch_from_array($POST, $index, $xss_clean);
     }
 }
+
 // --------------------------------------------------------------------
 
 /**
@@ -269,15 +275,19 @@ if( ! function_exists('i_post') )
 * @access   public
 * @param    string
 * @param    bool
+* @param    bool    Use global request values instead of HMVC values.
 * @return   string
 */
-if( ! function_exists('i_request') ) 
+if( ! function_exists('i_request') )
 {
-    function i_request($index = '', $xss_clean = FALSE)
+    function i_request($index = '', $xss_clean = FALSE, $use_global_var = FALSE)
     {
-        return _fetch_from_array($_REQUEST, $index, $xss_clean);
+        $REQUEST = ($use_global_var) ? $GLOBALS['_REQUEST_BACKUP']: $_REQUEST; // _REQUEST_BACKUP = Hmvc local request values
+
+        return _fetch_from_array($REQUEST, $index, $xss_clean);
     }
 }
+
 // --------------------------------------------------------------------
 
 /**
@@ -286,19 +296,22 @@ if( ! function_exists('i_request') )
 * @access   public
 * @param    string  The index key
 * @param    bool    XSS cleaning
+ *@param    bool    Use global post values instead of HMVC values.
 * @return   string
 */
-if( ! function_exists('i_get_post') ) 
+if( ! function_exists('i_get_post') )
 {
-    function i_get_post($index = '', $xss_clean = FALSE)
+    function i_get_post($index = '', $xss_clean = FALSE, $use_global_var = FALSE)
     {
-        if ( ! isset($_POST[$index]) )
+        $POST = ($use_global_var) ? $GLOBALS['_POST_BACKUP'] : $_POST; //  _POST_BACKUP = Hmvc local post values.
+
+        if ( ! isset($POST[$index]) )
         {
-            return i_get($index, $xss_clean);
+            return i_get($index, $xss_clean, $use_global_var);
         }
         else
         {
-            return i_post($index, $xss_clean);
+            return i_post($index, $xss_clean, $use_global_var);
         }
     }
 }
@@ -312,7 +325,7 @@ if( ! function_exists('i_get_post') )
 * @param    bool
 * @return   string
 */
-if( ! function_exists('i_cookie') ) 
+if( ! function_exists('i_cookie') )
 {
     function i_cookie($index = '', $xss_clean = FALSE)
     {
@@ -323,13 +336,16 @@ if( ! function_exists('i_cookie') )
 
 /**
 * Fetch an item from the SERVER array
+* WE DON'T need to $use_global_var variable because of
+* we already use global $_SERVER values in HMVC requests
+* except the http method variable.
 *
 * @access   public
 * @param    string
 * @param    bool
 * @return   string
 */
-if( ! function_exists('i_server') ) 
+if( ! function_exists('i_server') )
 {
     function i_server($index = '', $xss_clean = FALSE)
     {
@@ -337,24 +353,24 @@ if( ! function_exists('i_server') )
     }
 }
 // --------------------------------------------------------------------
-             
+
 /**
 * Fetch the IP Address
 *
 * @access    public
 * @return    string
 */
-if( ! function_exists('i_ip_address') ) 
+if( ! function_exists('i_ip_address') )
 {
     function i_ip_address()
     {
         $_ob = base_register('Storage');
-        
+
         if ($_ob->input->ip_address !== FALSE)
         {
             return $_ob->input->ip_address;
         }
-        
+
         if (config_item('proxy_ips') != '' && i_server('HTTP_X_FORWARDED_FOR') && i_server('REMOTE_ADDR'))
         {
             $proxies = preg_split('/[\s,]/', config_item('proxy_ips'), -1, PREG_SPLIT_NO_EMPTY);
@@ -405,12 +421,12 @@ if( ! function_exists('i_ip_address') )
 * Validate IP Address
 *
 * Updated version suggested by Geert De Deckere
-* 
+*
 * @access   public
 * @param    string
 * @return   string
 */
-if( ! function_exists('i_valid_ip') ) 
+if( ! function_exists('i_valid_ip') )
 {
     function i_valid_ip($ip)
     {
@@ -429,7 +445,7 @@ if( ! function_exists('i_valid_ip') )
         // Check each segment
         foreach ($ip_segments as $segment)
         {
-            // IP segments must be digits and can not be 
+            // IP segments must be digits and can not be
             // longer than 3 digits or greater then 255
             if ($segment == '' OR preg_match("/[^0-9]/", $segment) OR $segment > 255 OR strlen($segment) > 3)
             {
@@ -448,12 +464,12 @@ if( ! function_exists('i_valid_ip') )
 * @access    public
 * @return    string
 */
-if( ! function_exists('i_user_agent') ) 
+if( ! function_exists('i_user_agent') )
 {
     function i_user_agent()
     {
         $_ob = base_register('Storage');
-        
+
         if ($_ob->input->user_agent !== FALSE)
         {
             return $_ob->input->user_agent;
@@ -473,7 +489,7 @@ if( ! function_exists('i_user_agent') )
 * @param    string
 * @return   string
 */
-if( ! function_exists('i_filename_security') ) 
+if( ! function_exists('i_filename_security') )
 {
     function i_filename_security($str)
     {
@@ -502,8 +518,8 @@ if( ! function_exists('i_filename_security') )
                         "%253c",     // <
                         "%3e",         // >
                         "%0e",         // >
-                        "%28",         // (  
-                        "%29",         // ) 
+                        "%28",         // (
+                        "%29",         // )
                         "%2528",     // (
                         "%26",         // &
                         "%24",         // $
