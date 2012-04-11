@@ -295,7 +295,12 @@ Class OB_DB extends OB_DBAc_sw {
 
         $this->queries[] = $sql;    // Save the  query for debugging
 
-        $affected_rows = $this->_conn->exec($sql);
+        try{
+          $affected_rows = $this->_conn->exec($sql);
+        } catch (Exception $e) {
+          usleep(20);
+          $affected_rows = $this->_conn->exec($sql);
+        }
 
         $end_time   = ob_query_timer('end');
         //------------------------------------
