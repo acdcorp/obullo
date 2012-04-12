@@ -141,7 +141,12 @@ Class OB_DB extends OB_DBAc_sw {
         //------------------------------------
         $start_time = ob_query_timer('start');
 
-        $this->Stmt = $this->_conn->query($sql);
+        try {
+            $this->Stmt = $this->_conn->query($sql);
+        } catch (Exception $e) {
+            usleep(20);
+            $this->Stmt = $this->_conn->query($sql);
+        }
 
         $this->queries[] = $sql;   // Save the  query for debugging
 
