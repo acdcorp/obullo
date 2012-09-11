@@ -48,7 +48,7 @@ if ( ! function_exists('task_run'))
             }
         }
 
-        $shell  = 'nice '.PHP_PATH .' '. FPATH .'/task.php '. $module .' "'. implode('/', $uri) .'" OB_TASK_REQUEST';
+        $shell  = PHP_PATH .' '. FPATH .'/task.php '. $module .' "'. implode('/', $uri) .'" OB_TASK_REQUEST';
 
         if($debug)
         {
