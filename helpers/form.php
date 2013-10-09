@@ -163,6 +163,27 @@ if( ! function_exists('form_input') )
 }
 // ------------------------------------------------------------------------
 
+
+if( ! function_exists('form_input2') ) 
+{  
+    function form_input2($data, $value = '', $extra = '', $has_error = false)
+    {
+	    $defaults = array('type' => 'text', 'name' => (( ! is_array($data)) ? $data : ''), 'value' => $value);
+
+	    $has_error = (isset($data['error']) && $data['error'])?true:false;
+	    $x = '<div class="form-group'.($has_error?' has-error':'').'">';
+	    if(isset($data['label']))
+	    {
+	    	$x .= '<label class="control-label">'.$data['label'].'</label>';
+	    }
+	    $x .= "<input "._parse_form_attributes($data, $defaults).$extra." />";
+	    if($has_error)
+	    	$x .= '<p class="help-block caption">'.$data['error'].'</p>';
+	    $x .= '</div>';
+	    return $x;
+    }
+}
+
 /**
 * Password Field
 *
